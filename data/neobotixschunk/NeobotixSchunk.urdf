@@ -1,0 +1,513 @@
+<?xml version="1.0"?>
+<robot name="gripper_2" >
+
+<!-- Materials -->
+
+    <material name="Neobotix/Black">
+        <color rgba="0.0 0.0 0.0 1.0"/>
+    </material>
+
+    <material name="Neobotix/Blue">
+        <color rgba="0.0 0.0 0.8 1.0"/>
+    </material>
+
+    <material name="Neobotix/Green">
+        <color rgba="0.0 0.8 0.0 1.0"/>
+    </material>
+
+    <material name="Neobotix/Grey">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+    </material>
+
+    <material name="Neobotix/Grey2">
+        <color rgba="0.9 0.9 0.9 1.0"/>
+    </material>
+
+    <material name="Neobotix/Red">
+        <color rgba="0.8 0.0 0.0 1.0"/>
+    </material>
+
+    <material name="Neobotix/White">
+        <color rgba="1.0 1.0 1.0 1.0"/>
+    </material>
+    
+    <material name="Neobotix/Yellow">
+        <color rgba="1.0 1.0 0 10" />
+    </material>
+
+    <material name="Schunk/LightGrey">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+    </material>
+
+    <material name="Schunk/DarkGrey">
+        <color rgba="0.4 0.4 0.4 1.0"/>
+    </material>
+
+    <material name="Schunk/Black">
+        <color rgba="0.0 0.0 0.0 1.0"/>
+    </material>
+
+    <material name="Schunk/DarkGolden">
+        <color rgba="0.4 0.4 0.3 1.0"/>
+    </material>
+
+    <material name="Schunk/Blue">
+        <color rgba="0.0 0.0 0.8 1.0"/>
+    </material>
+
+
+<!--++++++++++++++++++++++++++++++base_link++++++++++++++++++++++++++++++++++++++++++++++++++++--> 
+<!--++++++++++++++++++++body++++++++++++++++++++++++++++--> 
+  <link name="base_link">
+       <inertial>
+           <mass value="67.010" />
+	       <origin xyz="0 0 0.216" rpy="0 0 0"/>
+	       <inertia ixx="0.54" ixy="0.0" ixz="0.0" iyy="1.08" iyz="0.0" izz="1.23" />
+       </inertial>
+       <visual>
+        <!--origin xyz="0.0 0.0 0.234" rpy="0 0 1.57" /--><!-- for cylinder -->
+	       <origin xyz="-0.160 0.0 0.09" rpy="0 0 -1.57" />
+           <geometry>
+               <mesh filename="meshes/MP500-BODY.STL" scale="0.01 0.01 0.01"/>
+	    	<!--cylinder length="0.381" radius="0.2545"/-->
+	    	<!--box size="0.445 0.277 0.17"/-->
+           </geometry>
+           <material name="Neobotix/Grey" />
+       </visual>
+       <collision name='body_collision'>
+           <origin xyz="-0.160 0.0 0.09" rpy="0 0 -1.57" />
+           <geometry>
+               <mesh filename="meshes/MP500-BODY.STL" scale="0.01 0.01 0.01"/>
+               <!--<box size="0.814 0.592 0.4225"/>-->
+          <!--cylinder length="0.381" radius="0.2545"/-->
+           </geometry>
+       </collision>
+  </link>
+
+<!--+++++++++++++++++++wheel_left_link++++++++++++++++++++++++--> 
+   <link name="wheel_left_link" type="wheel">
+      <inertial>
+      	   <mass value="1.5" />
+     	   <origin xyz="0 0 0" rpy="0 0 0" />
+      	   <inertia ixx="0.0045" ixy="0" ixz="0" iyy="0.0078" iyz="0" izz="0.0045" />
+      </inertial>
+      <visual>
+     	<origin xyz="0 0 0" rpy="0 0 -1.57" />
+     	<geometry>
+            <mesh filename="meshes/MP500-WHEEL.STL" scale="0.01 0.01 0.01" />
+     	</geometry>
+     	<material name="Neobotix/Blue" />
+      </visual>
+
+      <collision>
+     	<origin xyz="0 0 0" rpy="0 1.57 -1.57" />
+     	<geometry>
+        	<cylinder radius="0.124" length="0.085"/>
+     	</geometry>
+      </collision>
+   </link>
+
+<!--+++++++++++++++++++wheel_left_joint++++++++++++++++++++++++--> 
+  <joint name="wheel_left_joint" type="continuous">
+     <origin xyz="-0.155 0.255 0.13" rpy="0 0 0" />
+     <axis xyz="0 1 0"/>
+     <limit effort="10000.0" lower="-1e+16" upper="1e+16" velocity="11.6"/>
+     <joint_properties damping="0.0" friction="0.0" />
+     <parent link="base_link" />
+     <child link="wheel_left_link" />
+  </joint>
+
+  <!--<transmission name="wheel_left_joint_transmission" type="SimpleTransmission">-->
+    <!--<type>transmission_interface/SimpleTransmission</type>-->
+    <!--<joint name="wheel_left_joint">-->
+      <!--<hardwareInterface>EffortJointInterface</hardwareInterface>-->
+    <!--</joint>-->
+    <!--<actuator name="wheel_left_joint_motor">-->
+      <!--<hardwareInterface>EffortJointInterface</hardwareInterface>-->
+      <!--<mechanicalReduction>1</mechanicalReduction>-->
+    <!--</actuator>-->
+  <!--</transmission>-->
+
+<!--+++++++++++++++++++wheel_right_link++++++++++++++++++++++++--> 
+
+  <link name="wheel_right_link" type="wheel">
+     <inertial>
+         <mass value="1.5" />
+         <origin xyz="0 0 0" rpy="0 0 0" />
+		  <!--inertia ixx="0.0051" ixy="0" ixz="0" iyy="0.0051" iyz="0" izz="0.009" /-->
+         <inertia ixx="0.0045" ixy="0" ixz="0" iyy="0.0078" iyz="0" izz="0.0045" />
+     </inertial>
+
+     <visual>
+         <origin xyz="0 0 0" rpy="0 0 -1.57" />
+         <geometry>
+             <mesh filename="meshes/MP500-WHEEL.STL" scale="0.01 0.01 0.01" />
+         </geometry>
+         <material name="Neobotix/Blue" />
+     </visual>
+     <collision>
+         <origin xyz="0 0 0" rpy="0 1.57 -1.57" />
+         <geometry>
+             <cylinder radius="0.124" length="0.085"/>
+	     </geometry>
+     </collision>
+  </link>
+
+<!--+++++++++++++++++++wheel_right_joint++++++++++++++++++++++++-->
+   <joint name="wheel_right_joint" type="continuous">
+       <origin xyz="-0.155 -0.255 0.13" rpy="0 0 0" />
+       <axis xyz="0 1 0"/>
+       <limit effort="10000.0" lower="-1e+16" upper="1e+16" velocity="11.6"/>
+       <joint_properties damping="0.0" friction="0.0" />
+       <parent link="base_link" />
+       <child link="wheel_right_link" />
+   </joint>
+
+   <!--<transmission name="wheel_right_joint_transmission" type="SimpleTransmission">-->
+    <!--<type>transmission_interface/SimpleTransmission</type>-->
+    <!--<joint name="wheel_right_joint">-->
+      <!--<hardwareInterface>EffortJointInterface</hardwareInterface>-->
+    <!--</joint>-->
+    <!--<actuator name="wheel_right_joint_motor">-->
+      <!--<hardwareInterface>EffortJointInterface</hardwareInterface>-->
+      <!--<mechanicalReduction>1</mechanicalReduction>-->
+    <!--</actuator>-->
+   <!--</transmission>-->
+
+
+<!--+++++++++++++++++++laserscanner_front_joint++++++++++++++++++++++++-->
+   <joint name="laserscanner_front_joint" type="fixed">
+       <axis xyz="0 0 1" />
+       <origin xyz="-0.39 0 0.281" rpy="0 0 0" />
+       <parent link="base_link"/>
+       <child link="laserscanner_front_link"/>
+   </joint>
+
+<!--+++++++++++++++++++laserscanner_front_link++++++++++++++++++++++++-->
+    <link name="laserscanner_front_link" type="laser">
+	<inertial>
+		<mass value="0.001" />
+		<origin xyz="0 0 0" rpy="3.14 0 -1.57" />
+		<inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001" />
+    </inertial>
+    <visual>
+		<origin xyz="0 0 -0.04" rpy="3.14 0 -1.57" />
+		<geometry>
+            <mesh filename="meshes/SICK-S300.STL" />
+		</geometry>
+		<material name="Neobotix/Yellow" />
+  	</visual>
+    <collision>
+		<origin xyz="0 0 0" rpy="3.14 0 -1.57" />
+		<geometry>
+            <cylinder length="0.154" radius="0.053" />
+		</geometry>
+  	</collision>
+    </link>
+
+<!--+++++++++++++++ wheel_hanger+++++++++++++++++++++++++++-->
+   <link name="hanger">
+      <inertial>
+		  <mass value="0.001" />
+		  <origin xyz="0 0 0" rpy="0 0 0" />
+		  <inertia ixx="0.0013" ixy="0" ixz="0" iyy="0.0013" iyz="0" izz="0.0013" />
+      </inertial>
+      <visual>
+          <origin xyz="0 0 0" rpy="0 0 -1.57" />
+          <geometry>
+              <mesh filename="meshes/HANGER-WHEEL.STL" scale="0.01 0.01 0.01" />
+	      </geometry>
+          <material name="Neobotix/Grey" />
+	  </visual>
+      <collision>
+		 <origin xyz="0 0 0" rpy="0 0 -1.57" />
+		 <geometry>
+             <mesh filename="meshes/HANGER-WHEEL.STL" scale="0.01 0.01 0.01" />
+          	<!--<sphere radius="0.00852"/>-->
+		 </geometry>
+      </collision>
+   </link>
+
+<!--+++++++++++++++ wheel_hanger_joint +++++++++++++++++++++++++++-->
+   <joint name="hanger_joint" type="fixed">
+    	<origin xyz="0.255 0 0.10" rpy="0 0 0"/>
+    	<axis xyz="0 0 1"/>
+    	<limit effort="10000.0" lower="-1e+16" upper="1e+16" velocity="13.5"/>
+    	<joint_properties damping="0.0" friction="0.0" />
+    	<parent link="base_link" />
+    	<child link="hanger" />
+   </joint>
+
+
+
+<!--+++++++++++++++ arm_podest_joint +++++++++++++++++++++++++++-->
+   <joint name="arm_podest_joint" type="fixed">
+      <origin xyz="0.19 0 0.36" rpy="0 0 0" />
+      <parent link="base_link"/>
+      <child link="arm_podest_link"/>
+   </joint>
+
+<!--+++++++++++++++ arm_podest_link +++++++++++++++++++++++++++-->
+  <link name="arm_podest_link">
+      <inertial>
+          <mass value="0.01" />
+          <origin xyz="0 0 0" />
+          <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
+      </inertial>
+      <visual>
+          <geometry>
+              <mesh filename="meshes/arm_podest_link.stl"/>
+          </geometry>
+          <material name="Schunk/LightGrey"/>
+      </visual>
+      <collision>
+          <geometry>
+              <mesh filename="meshes/arm_podest_link.stl"/>
+          </geometry>
+      </collision>
+  </link>
+
+<!--+++++++++++++++ arm_base_joint +++++++++++++++++++++++++++-->
+   <joint name="arm_base_joint" type="fixed">
+        <origin xyz="0 0 0.140" rpy="0 0 0" />
+        <axis xyz="0 0 1"/>
+        <parent link="arm_podest_link"/>
+        <child link="arm_base_link"/>
+   </joint>
+
+<!--+++++++++++++++ arm_base_link +++++++++++++++++++++++++++-->
+   <link name="arm_base_link">
+      <inertial>
+          <mass value="0.01" />
+          <origin xyz="0 0 0" />
+          <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
+      </inertial>
+   </link>
+
+<!--+++++++++++++++joint between arm_base_link and arm_1_link +++++++++++++++-->
+    <joint name="arm_1_joint" type="revolute">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <axis xyz="0 0 1"/>
+        <parent link="arm_base_link"/>
+        <child link="arm_1_link"/>
+        <limit effort="216" velocity="0.43633" lower="-3.1215926" upper="3.1215926"/>
+    </joint>
+
+
+<!--+++++++++++++++ arm_1_link+++++++++++++++-->
+   <link name="arm_1_link">
+       <inertial>
+           <mass value="0.01" />
+           <origin xyz="0 0 0" />
+           <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
+       </inertial>
+       <visual>
+           <geometry>
+               <mesh filename="meshes/arm_1_link.stl"/>
+           </geometry>
+           <material name="Schunk/LightGrey"/>
+       </visual>
+       <collision>
+           <geometry>
+               <mesh filename="meshes/arm_1_link.stl"/>
+           </geometry>
+       </collision>
+   </link>
+
+<!-- +++++++++++++++joint between arm_1_link and arm_2_link +++++++++++++++-->
+    <joint name="arm_2_joint" type="revolute">
+      <origin xyz="0 0 0.24" rpy="-1.5707963 -1.5707963 0"/>
+      <axis xyz="0 0 1"/>
+      <parent link="arm_1_link"/>
+      <child link="arm_2_link"/>
+      <limit effort="216" velocity="0.43633" lower="-2.12" upper="2.12"/>
+    </joint>
+
+
+<!--+++++++++++++++ arm_2_link +++++++++++++++-->
+    <link name="arm_2_link">
+        <inertial>
+            <mass value="0.01" />
+            <origin xyz="0 0 0" />
+            <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="meshes/arm_2_link.stl"/>
+            </geometry>
+            <material name="Schunk/Black"/>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="meshes/arm_2_link_collision.stl"/>
+            </geometry>
+        </collision>
+    </link>
+
+<!--+++++++++++++++ joint between arm_2_link and arm_3_link +++++++++++++++-->
+    <joint name="arm_3_joint" type="revolute">
+      <origin xyz="0 0 0" rpy="1.5707963 0 1.5707963"/>
+      <axis xyz="0 0 1"/>
+      <parent link="arm_2_link"/>
+      <child link="arm_3_link"/>
+      <limit effort="81.5" velocity="0.4189" lower="-3.1215926" upper="3.1215926"/>
+    </joint>
+
+
+<!--+++++++++++++++ arm_3_link +++++++++++++++-->
+   <link name="arm_3_link">
+       <inertial>
+           <mass value="0.01" />
+           <origin xyz="0 0 0" />
+           <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
+       </inertial>
+       <visual>
+           <geometry>
+               <mesh filename="meshes/arm_3_link.stl"/>
+           </geometry>
+           <material name="Schunk/LightGrey"/>
+       </visual>
+       <collision>
+           <geometry>
+               <mesh filename="meshes/arm_3_link_collision.stl"/>
+           </geometry>
+       </collision>
+   </link>
+
+<!--+++++++++++++++ joint between arm_3_link and arm_4_link +++++++++++++++-->
+    <joint name="arm_4_joint" type="revolute">
+      <origin xyz="0 0 0.328" rpy="-1.5707963 -1.5707963 0"/>
+      <axis xyz="0 0 1"/>
+      <parent link="arm_3_link"/>
+      <child link="arm_4_link"/>
+      <limit effort="81.5" velocity="0.4189" lower="-2.16" upper="2.16"/>
+    </joint>
+
+
+<!--+++++++++++++++arm_4_link +++++++++++++++-->
+    <link name="arm_4_link">
+        <inertial>
+            <mass value="0.01" />
+            <origin xyz="0 0 0" />
+            <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="meshes/arm_4_link.stl"/>
+            </geometry>
+            <material name="Schunk/Black"/>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="meshes/arm_4_link_collision.stl"/>
+            </geometry>
+        </collision>
+    </link>
+
+<!--+++++++++++++++ joint between arm_4_link and arm_5_link+++++++++++++++ -->
+    <joint name="arm_5_joint" type="revolute">
+      <origin xyz="0 0 0" rpy="1.5707963 0 1.5707963"/>
+      <axis xyz="0 0 1"/>
+      <parent link="arm_4_link"/>
+      <child link="arm_5_link"/>
+      <limit effort="20.7" velocity="0.43633" lower="-3.1215926" upper="3.1215926"/>
+    </joint>
+
+
+<!-- +++++++++++++++arm_5_link +++++++++++++++-->
+    <link name="arm_5_link">
+        <inertial>
+            <mass value="0.01" />
+            <origin xyz="0 0 0" />
+            <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="meshes/arm_5_link.stl"/>
+            </geometry>
+            <material name="Schunk/LightGrey"/>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="meshes/arm_5_link_collision.stl"/>
+            </geometry>
+        </collision>
+    </link>
+
+<!--+++++++++++++++ joint between arm_5_link and arm_6_link +++++++++++++++-->
+    <joint name="arm_6_joint" type="revolute">
+      <origin xyz="0 0 0.323" rpy="-1.5707963 -1.5707963 0"/>
+      <axis xyz="0 0 1"/>
+      <parent link="arm_5_link"/>
+      <child link="arm_6_link"/>
+      <limit effort="15" velocity="1.2566" lower="-2.07" upper="2.07"/>
+    </joint>
+
+
+<!--+++++++++++++++ arm_6_link +++++++++++++++-->
+    <link name="arm_6_link">
+        <inertial>
+            <mass value="0.01" />
+            <origin xyz="0 0 0" />
+            <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="meshes/arm_6_link.stl"/>
+            </geometry>
+            <material name="Schunk/Black"/>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="meshes/arm_6_link_collision.stl"/>
+            </geometry>
+        </collision>
+     </link>
+
+<!--+++++++++++++++ joint between arm_6_link and arm_7_link+++++++++++++++ -->
+    <joint name="arm_7_joint" type="revolute">
+      <origin xyz="0 0 0" rpy="1.5707963 0 1.5707963"/>
+      <axis xyz="0 0 1"/>
+      <parent link="arm_6_link"/>
+      <child link="arm_7_link"/>
+      <limit effort="15" velocity="1.2566" lower="-2.94" upper="2.94"/>
+    </joint>
+
+
+<!--+++++++++++++++arm_7_link +++++++++++++++-->
+    <link name="arm_7_link">
+        <inertial>
+            <mass value="0.01" />
+            <origin xyz="0 0 0" />
+            <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="meshes/arm_7_link.stl"/>
+            </geometry>
+            <material name="Schunk/LightGrey"/>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="meshes/arm_7_link.stl"/>
+            </geometry>
+        </collision>
+    </link>
+<!--+++++++++++++++ arm_ee_joint +++++++++++++++++++++++++++-->
+    <joint name="arm_ee_joint" type="fixed">
+      <origin xyz="0 0 0.0824" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <parent link="arm_7_link"/>
+      <child link="arm_ee_link"/>
+    </joint>
+
+<!--+++++++++++++++ arm_ee_link +++++++++++++++++++++++++++-->
+    <link name="arm_ee_link">
+        <inertial>
+            <mass value="0.01" />
+            <origin xyz="0 0 0" />
+            <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
+        </inertial>
+    </link>
+
+</robot>
