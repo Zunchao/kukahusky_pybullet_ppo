@@ -34,7 +34,7 @@ class MMKukaHuskyGymEnv(gym.Env):
                  isEnableSelfCollision=True,
                  renders=False,
                  isDiscrete=False,
-                 maxSteps=1000,
+                 maxSteps=1e3,
                  action_dim = 9,
                  rewardtype='rdense',
                  randomInitial=False):
@@ -54,9 +54,14 @@ class MMKukaHuskyGymEnv(gym.Env):
         self._cam_pitch = -40
         self._rewardtype = rewardtype
         self._action_dim = action_dim
-        self.dis = 100
+        self.ee_dis = 100
+        self.base_dis = 100
+        self.dis_init = 100
         self._dis_vor = 100 # changes between the current and former distance
         self.count = 0
+        self.djoint = 0.01
+        self.dbaselinear = 0.01
+        self.dbaseangular = 0.05
 
         self._p = p
         if self._renders:
@@ -70,21 +75,15 @@ class MMKukaHuskyGymEnv(gym.Env):
         self._seed()
         self.reset()
         observationDim = len(self.getExtendedObservation())
-
         observation_high = np.array([largeValObservation] * observationDim)
 
-        da = 0.01
-
+        da = 1
         if (self._isDiscrete):
             self.action_space = spaces.Discrete(9)
         else:
-            #self._action_bound = math.pi/2
-            # action_high = np.array([self._action_bound] * action_dim)
-            #if (self._action_dim == 5):
-                # husky twist limits is from https://github.com/husky/husky/blob/kinetic-devel/husky_control/config/control.yaml
-                #action_high = np.array([0.01, 0.01, 0.01, 1, 2])
-            #elif (self._action_dim == 9):
+            # husky twist limits is from https://github.com/husky/husky/blob/kinetic-devel/husky_control/config/control.yaml
             action_high = np.ones(self._action_dim)*da
+            self.action_bound = action_high
             self.action_space = spaces.Box(low=-action_high, high=action_high, dtype=np.float32)
         self.observation_space = spaces.Box(low=-observation_high, high=observation_high, dtype=np.float32)
         self.viewer = None
@@ -100,11 +99,12 @@ class MMKukaHuskyGymEnv(gym.Env):
         p.loadURDF(os.path.join(self._urdfRoot, "kukahusky_pybullet_ppo/data/plane.urdf"), [0, 0, 0])
 
         d_space_scale = len(str(abs(self.count)))*0.5
-        print('scale : ', self.count, d_space_scale)
+        self._maxSteps = 500 + 500*len(str(abs(self.count)))
+        print('scale here: ', self.count, d_space_scale, self._maxSteps)
         # d_space_scale = 1
         xpos = random.uniform(-d_space_scale, d_space_scale) + 0.20
         ypos = random.uniform(-d_space_scale, d_space_scale) + 0.35
-        zpos = random.uniform(0.5, 1.4)
+        zpos = random.uniform(0.5, 1.5)
         self.goal = [xpos, ypos, zpos]
         self.goalUid = p.loadURDF(os.path.join(self._urdfRoot, "kukahusky_pybullet_ppo/data/spheregoal.urdf"), xpos, ypos, zpos)
 
@@ -112,6 +112,8 @@ class MMKukaHuskyGymEnv(gym.Env):
         self._envStepCounter = 0
         p.stepSimulation()
         self._observation = self.getExtendedObservation()
+        edisvec = [x - y for x, y in zip(self._observation[0:3], self.goal)]
+        self.dis_init = np.linalg.norm(edisvec)
         #self._observation.extend(list(self.goal))
         return self._observation
 
@@ -125,16 +127,16 @@ class MMKukaHuskyGymEnv(gym.Env):
     def getExtendedObservation(self):
         observation = self._mmkukahusky.getObservation()
         observation.extend(self.goal)
-        #for i in [3,4,5]:
-            #observation[i] = self.goal[i-3]
-        # self._observation = [self.dis]
+
         self._observation = observation
-        # print('obs', self._observation)
+        #print('obs', self._observation)
         return self._observation
 
     def _step(self, action):
+        #if self._action_dim == 5:
+        action_scaled = action * 0.01
         for i in range(self._actionRepeat):
-            self._mmkukahusky.applyAction(action)
+            self._mmkukahusky.applyAction(action_scaled)
             p.stepSimulation()
             if self._termination():
                 break
@@ -152,9 +154,7 @@ class MMKukaHuskyGymEnv(gym.Env):
     def _render(self, mode="rgb_array", close=False):
         if mode != "rgb_array":
             return np.array([])
-
         base_pos, orn = self._p.getBasePositionAndOrientation(self._mmkukahusky.huskyUid)
-        ''''''
         view_matrix = self._p.computeViewMatrixFromYawPitchRoll(
             cameraTargetPosition=base_pos,
             distance=self._cam_dist,
@@ -169,7 +169,6 @@ class MMKukaHuskyGymEnv(gym.Env):
             width=RENDER_WIDTH, height=RENDER_HEIGHT, viewMatrix=view_matrix,
             projectionMatrix=proj_matrix, renderer=self._p.ER_BULLET_HARDWARE_OPENGL)
         # renderer=self._p.ER_TINY_RENDERER)
-
         rgb_array = np.array(px, dtype=np.uint8)
         rgb_array = np.reshape(rgb_array, (RENDER_HEIGHT, RENDER_WIDTH, 4))
 
@@ -177,43 +176,44 @@ class MMKukaHuskyGymEnv(gym.Env):
         return rgb_array
 
     def _termination(self):
-        # state = p.getLinkState(self._mmkukahusky.kukaUid, self._mmkukahusky.kukaEndEffectorIndex)
-        # actualEndEffectorPos = state[0]
         self._observation = self.getExtendedObservation()
-        # print('obs1', actualEndEffectorPos, self._observation)
-
         if (self.terminated or self._envStepCounter > self._maxSteps):
             # self._observation = self.getExtendedObservation()
             return True
+        # print('ob',self._observation)
+        edisvec = [x - y for x, y in zip(self._observation[0:3], self.goal)]
+        self.ee_dis = np.linalg.norm(edisvec)
 
-        disvec = [x-y for x, y in zip(self._observation[0:3], self.goal)]
-        dis = np.linalg.norm(disvec)
+        bdisvec = [x2 - y2 for x2, y2 in zip(self._observation[3:5], self.goal[0:2])]
+        self.base_dis = np.linalg.norm(bdisvec)
 
-        if dis < 0.1:  # (actualEndEffectorPos[2] <= -0.43):
+        if self.ee_dis < 0.05:  # (actualEndEffectorPos[2] <= -0.43):
             self.terminated = 1
             self.count += 1
-            # self._observation = self.getExtendedObservation()
-            # print('terminate:', self._observation, dis,self.goal)
+            print('terminate:', self._observation, self.ee_dis,self.goal)
             # [-0.6356161906186968, 0.4866813952531867, 1.1774765260184725, -0.07900755219115511, 0.013299602972714528, -0.4413131443405152, -0.6369316683047506, 0.4457577316748338, 1.0863575155494019]
             # 0.09989569956249031 [-0.6369316683047506, 0.4457577316748338, 1.0863575155494019]
             return True
         return False
 
     def _reward(self):
-        # state = p.getLinkState(self._mmkukahusky.kukaUid, self._mmkukahusky.kukaEndEffectorIndex)
-        # actualEndEffectorPos = state[0]
-        disvec = [x-y for x, y in zip(self._observation[0:3], self.goal)]
-        self.dis = np.linalg.norm(disvec)
-        delta_dis = self.dis - self._dis_vor
-        self._dis_vor = self.dis
+        delta_dis = self.ee_dis - self._dis_vor
+        self._dis_vor = self.ee_dis
+        tau = (self.ee_dis/self.dis_init)**2
+
+        if tau > 1:
+            penalty = (1-tau)*self.ee_dis + self._envStepCounter*1e-6
+        else:
+            penalty = self._envStepCounter*1e-6
+        #print('tau', self.dis_init, tau, penalty)
         if self._rewardtype == 'rdense':
-            reward = -self.dis - np.linalg.norm(self._actions)
+            # reward = (1-tau)*self.ee_dis + tau*self.base_dis - self._envStepCounter*1e-5#- penalty
+            reward = self.ee_dis
         elif self._rewardtype == 'rsparse':
             if delta_dis > 0:
                 reward = 0
             else:
                 reward = 1
-
         return reward
 
     def _sample_action(self):

@@ -58,6 +58,9 @@ class MMKukaHusky:
             # p.resetJointState(self.huskyUid, wheelIndex, self.wheelVel[wheelIndex], self.wheelVel[wheelIndex])
             p.setJointMotorControl2(self.huskyUid, wheelIndex, controlMode=p.VELOCITY_CONTROL,
                                     targetVelocity=initial_wheelVel[wheelIndex], force=self.maxForce)
+        huskyPos, huskyOrn = p.getBasePositionAndOrientation(self.huskyUid)
+        huskyEul = p.getEulerFromQuaternion(huskyOrn)
+        # print('base',huskyPos, huskyOrn, huskyEul)
 
         # reset arm joint positions and controllers
         if self.randInitial:
@@ -69,6 +72,10 @@ class MMKukaHusky:
             j6 = random.uniform(-2.094, 2.094)
             j7 = random.uniform(-3.054, 3.054)
             initial_jointPositions = [j1, j2, j3, j4, j5, j6, j7]
+            #initial_basep = [random.uniform(-2, 2),random.uniform(-2, 2), 0]
+            #initial_basea = [random.uniform(-math.pi, math.pi), random.uniform(-math.pi, math.pi), random.uniform(-math.pi, math.pi)]
+            #initial_baseo = p.getQuaternionFromEuler(initial_basea)
+            #p.resetBasePositionAndOrientation(self.huskyUid, initial_basep, initial_baseo)
         else:
             initial_jointPositions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
@@ -88,6 +95,7 @@ class MMKukaHusky:
         self.wheelIndices = []
 
         initial_kukastate = p.getLinkState(self.kukaUid, self.kukaEndEffectorIndex)
+        # print('kuka',initial_kukastate)
         self.kukastate = [initial_kukastate[0][0],initial_kukastate[0][1], initial_kukastate[0][2]]
 
         initial_base_vel = p.getBaseVelocity(self.huskyUid)
@@ -133,9 +141,15 @@ class MMKukaHusky:
         euler = p.getEulerFromQuaternion(orn)
 
         observation.extend(list(pos))
-        observation.extend(list(vel))
+        # observation.extend(list(vel))
         # observation.extend(list(euler))
-        # print('o', observation, list(pos))
+
+        huskyPos, huskyOrn = p.getBasePositionAndOrientation(self.huskyUid)
+        huskyEul = p.getEulerFromQuaternion(huskyOrn)
+        observation.extend(list(huskyPos))
+        # observation.extend(list(vel))
+        # observation.extend(list(huskyEul))
+        # print('o', observation)
 
         return observation
 

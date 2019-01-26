@@ -31,9 +31,9 @@ import os, inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(os.path.dirname(currentdir))
 os.sys.path.insert(0,parentdir)
-from agent import tools
-from agent import configs
-from agent import utility
+from kukahusky_pybullet_ppo.agent import tools
+from kukahusky_pybullet_ppo.agent import configs
+from kukahusky_pybullet_ppo.agent import utility
 
 
 def _create_environment(config):

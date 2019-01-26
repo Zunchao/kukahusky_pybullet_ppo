@@ -24,11 +24,14 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(os.path.dirname(currentdir))
 os.sys.path.insert(0,parentdir)
 
-from agent import ppo
-from agent import networks
+from kukahusky_pybullet_ppo.agent import ppo
+from kukahusky_pybullet_ppo.agent import networks
 import tensorflow as tf
-import env.mmKukaHuskyGymEnv as mmKukaHuskyGymEnv
+#import kukahusky_pybullet_ppo.env.mmKukaHuskyGymEnv as mmKukaHuskyGymEnv
+#import kukahusky_pybullet_ppo.env.neobotixschunkGymEnv as neobotixschunkGymEnv
 
+from kukahusky_pybullet_ppo.env.mmKukaHuskyGymEnv import MMKukaHuskyGymEnv
+from kukahusky_pybullet_ppo.env.neobotixschunkGymEnv import NeobotixSchunkGymEnv
 
 def default():
   """Default configuration for PPO."""
@@ -44,8 +47,8 @@ def default():
       all=r'.*',
       policy=r'.*/policy/.*',
       value=r'.*/value/.*')
-  policy_layers = 200, 100
-  value_layers = 200, 100
+  policy_layers = 128, 128
+  value_layers = 128, 128
   init_mean_factor = 0.1
   init_logstd = -1
   # Optimization
@@ -54,7 +57,7 @@ def default():
   optimizer = tf.train.AdamOptimizer
   update_epochs_policy = 64
   update_epochs_value = 64
-  learning_rate = 1e-4  
+  learning_rate = 3*1e-4
   # Losses
   discount = 0.995
   kl_target = 1e-2
@@ -120,11 +123,20 @@ def pybullet_racecar():
   steps = 1e7  # 10M
   return locals()
 
+def pybullet_neoschunk_reaching():
+  """Configuration for Bullet Kukahusky mm task."""
+  locals().update(default())
+  env = functools.partial(NeobotixSchunkGymEnv, isDiscrete=False, renders=False, action_dim = 9, rewardtype='rdense')
+  # Environment
+  max_length = 1000
+  steps = 2e8  # 100M
+  return locals()
+
 def pybullet_kukahusky_reaching():
   """Configuration for Bullet Kukahusky mm task."""
   locals().update(default())
-  env = functools.partial(mmKukaHuskyGymEnv.MMKukaHuskyGymEnv, isDiscrete=False, renders=False, action_dim = 9, rewardtype='rdense')
+  env = functools.partial(MMKukaHuskyGymEnv, isDiscrete=False, renders=False, action_dim = 9, rewardtype='rdense')
   # Environment
   max_length = 1000
-  steps = 1e8  # 100M
+  steps = 2e8  # 100M
   return locals()

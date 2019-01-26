@@ -28,7 +28,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(os.path.dirname(currentdir))
 os.sys.path.insert(0,parentdir)
 
-from agent import tools
+from kukahusky_pybullet_ppo.agent import tools
 
 
 def define_simulation_graph(batch_env, algo_cls, config):

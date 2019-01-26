@@ -1,7 +1,7 @@
-from env.mmKukaHuskyGymEnv import MMKukaHuskyGymEnv
+from kukahusky_pybullet_ppo.env.mmKukaHuskyGymEnv import MMKukaHuskyGymEnv
 
 def main():
-    env = MMKukaHuskyGymEnv(renders=True, isDiscrete=False, action_dim = 9, rewardtype='rdense', randomInitial=False)
+    env = MMKukaHuskyGymEnv(renders=True, isDiscrete=False, action_dim = 9, rewardtype='rdense', randomInitial=False, maxSteps=1e8)
 
     motorsIds = []
     dv = 0.01
@@ -25,6 +25,8 @@ def main():
     motorsIds.append(env._p.addUserDebugParameter("base_linear_speed", -dv, dv, 0))
     motorsIds.append(env._p.addUserDebugParameter("base_angular_speed", -dv, dv, 0))
 
+    disc_total_rew=0
+    t=0
     done = False
     while (not done):
         # env.reset()
@@ -34,10 +36,13 @@ def main():
             action.append(env._p.readUserDebugParameter(motorId))
         # print('action。 ', action)
         state, reward, done, info = env.step(action)
-        # print('r',reward)
+        disc_total_rew += reward * 0.9**t
+        t+=1
+
         # state, reward, done, info = env.step(env._sample_action())
         obs = env.getExtendedObservation()
         # env.action_space()
+    print('r',disc_total_rew, t)
 
 if __name__ == "__main__":
     main()
