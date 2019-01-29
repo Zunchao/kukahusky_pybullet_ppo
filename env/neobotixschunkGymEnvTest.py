@@ -1,7 +1,7 @@
 from kukahusky_pybullet_ppo.env.neobotixschunkGymEnv import NeobotixSchunkGymEnv
 def main():
 
-    environment = NeobotixSchunkGymEnv(renders=True,isDiscrete=False, maxSteps=1e5)
+    environment = NeobotixSchunkGymEnv(renders=True,isDiscrete=False, maxSteps=1e5, action_dim=9)
     dv = 0.01
     leftwheelVelocitySlider = environment._p.addUserDebugParameter("basevelocity",-dv,dv,0)
     rightwheelVelocitySlider = environment._p.addUserDebugParameter("baseangularvelocity",-dv,dv,0)

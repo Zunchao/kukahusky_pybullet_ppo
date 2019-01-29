@@ -22,10 +22,10 @@ MEMORY_CAPACITY = 100000
 BATCH_SIZE = 64
 VAR_MIN = 0.1
 RENDER = True
-LOAD = 1
+LOAD = 0
 DISCRETE_ACTION = False
 
-env = MMKukaHuskyGymEnv(renders=1, isDiscrete=False, action_dim = 9, rewardtype='rdense', randomInitial=False)
+env = MMKukaHuskyGymEnv(renders=0, isDiscrete=False, action_dim = 9, rewardtype='rdense', randomInitial=False)
 STATE_DIM = env.observation_space.shape[0]
 ACTION_DIM = env.action_space.shape[0]
 ACTION_BOUND = env.action_bound

@@ -35,7 +35,7 @@ class MMKukaHuskyGymEnv(gym.Env):
                  renders=False,
                  isDiscrete=False,
                  maxSteps=1e3,
-                 action_dim = 9,
+                 action_dim=9,
                  rewardtype='rdense',
                  randomInitial=False):
         self._isDiscrete = isDiscrete
@@ -99,7 +99,7 @@ class MMKukaHuskyGymEnv(gym.Env):
         p.loadURDF(os.path.join(self._urdfRoot, "kukahusky_pybullet_ppo/data/plane.urdf"), [0, 0, 0])
 
         d_space_scale = len(str(abs(self.count)))*0.5
-        self._maxSteps = 500 + 500*len(str(abs(self.count)))
+        self._maxSteps = 1000 + 500*len(str(abs(self.count)))
         print('scale here: ', self.count, d_space_scale, self._maxSteps)
         # d_space_scale = 1
         xpos = random.uniform(-d_space_scale, d_space_scale) + 0.20
@@ -114,7 +114,7 @@ class MMKukaHuskyGymEnv(gym.Env):
         self._observation = self.getExtendedObservation()
         edisvec = [x - y for x, y in zip(self._observation[0:3], self.goal)]
         self.dis_init = np.linalg.norm(edisvec)
-        #self._observation.extend(list(self.goal))
+
         return self._observation
 
     def __del__(self):
@@ -134,19 +134,17 @@ class MMKukaHuskyGymEnv(gym.Env):
 
     def _step(self, action):
         #if self._action_dim == 5:
-        action_scaled = action * 0.01
+        action_scaled = np.multiply(action, self.action_bound*0.05)
         for i in range(self._actionRepeat):
             self._mmkukahusky.applyAction(action_scaled)
             p.stepSimulation()
-            if self._termination():
+            done = self._termination()
+            if done:
                 break
             self._envStepCounter += 1
         if self._renders:
             time.sleep(self._timeStep)
-        self._observation = self.getExtendedObservation()
         self._actions = action
-
-        done = self._termination()
         reward = self._reward()
 
         return self._observation, reward, done, {}
@@ -184,7 +182,7 @@ class MMKukaHuskyGymEnv(gym.Env):
         edisvec = [x - y for x, y in zip(self._observation[0:3], self.goal)]
         self.ee_dis = np.linalg.norm(edisvec)
 
-        bdisvec = [x2 - y2 for x2, y2 in zip(self._observation[3:5], self.goal[0:2])]
+        bdisvec = [x2 - y2 for x2, y2 in zip(self._observation[6:8], self.goal[0:2])]
         self.base_dis = np.linalg.norm(bdisvec)
 
         if self.ee_dis < 0.05:  # (actualEndEffectorPos[2] <= -0.43):
@@ -199,16 +197,17 @@ class MMKukaHuskyGymEnv(gym.Env):
     def _reward(self):
         delta_dis = self.ee_dis - self._dis_vor
         self._dis_vor = self.ee_dis
-        tau = (self.ee_dis/self.dis_init)**2
 
+        tau = (self.ee_dis/self.dis_init)**2
         if tau > 1:
-            penalty = (1-tau)*self.ee_dis + self._envStepCounter*1e-6
+            penalty = (1-tau)*self.ee_dis + self._envStepCounter/self._maxSteps/2
         else:
-            penalty = self._envStepCounter*1e-6
+            penalty = self._envStepCounter/self._maxSteps/2
         #print('tau', self.dis_init, tau, penalty)
         if self._rewardtype == 'rdense':
-            # reward = (1-tau)*self.ee_dis + tau*self.base_dis - self._envStepCounter*1e-5#- penalty
-            reward = self.ee_dis
+            reward = (1-tau)*self.ee_dis + tau*self.base_dis - penalty
+            # reward = self.ee_dis
+            reward = -reward
         elif self._rewardtype == 'rsparse':
             if delta_dis > 0:
                 reward = 0

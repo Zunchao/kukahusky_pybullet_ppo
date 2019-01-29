@@ -142,14 +142,14 @@ class MMKukaHusky:
 
         observation.extend(list(pos))
         # observation.extend(list(vel))
-        # observation.extend(list(euler))
+        observation.extend(list(euler))
 
         huskyPos, huskyOrn = p.getBasePositionAndOrientation(self.huskyUid)
         huskyEul = p.getEulerFromQuaternion(huskyOrn)
         observation.extend(list(huskyPos))
         # observation.extend(list(vel))
-        # observation.extend(list(huskyEul))
-        # print('o', observation)
+        observation.extend(list(huskyEul))
+        # print('o', huskyPos)
 
         return observation
 
